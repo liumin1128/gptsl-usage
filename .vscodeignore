@@ -1,9 +1,12 @@
 src/**
 test/**
+out/test/**
 .vscode/**
 .gitignore
 tsconfig.json
 *.map
+out/**/*.map
+*.vsix
 node_modules/**/.bin/**
 node_modules/typescript/**
 node_modules/@types/**
