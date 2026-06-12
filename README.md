@@ -1,24 +1,24 @@
 # GPTSL Usage
 
-在 VS Code 右下角状态栏展示 GenAI Key 当前使用额度。
+Show the current GenAI key spend in the bottom-right VS Code status bar.
 
-## 使用方式
+## Usage
 
-1. 打开 VS Code 设置。
-2. 搜索 `gptslUsage.apiKey`。
-3. 填入 API Key。
-4. 查看右下角状态栏显示的使用金额。
+1. Open VS Code Settings.
+2. Search for `gptslUsage.apiKey`.
+3. Enter your API Key.
+4. Check the usage amount in the bottom-right status bar.
 
-## 交互
+## Behavior
 
-- 未配置 API Key：状态栏显示 `设置额度 API Key`，点击会打开对应设置。
-- 已配置 API Key：点击状态栏会显示 loading，并刷新最新 `spend` 金额。
-- 请求失败：状态栏显示失败状态，鼠标悬停可查看错误原因。
+- Without an API Key: the status bar shows `Set Usage API Key`; clicking it opens the related setting.
+- With an API Key: clicking the status bar shows a loading state and refreshes the latest `spend` amount.
+- On request failure: the status bar shows a failed state; hover to view the error reason.
 
-## 设置项
+## Settings
 
-| 设置 | 说明 |
+| Setting | Description |
 | --- | --- |
-| `gptslUsage.apiKey` | 查询 GenAI Key 使用额度的 API Key |
+| `gptslUsage.apiKey` | API Key used to query GenAI key usage |
 
-> API Key 仅从 VS Code 用户设置读取，不会写入源码或日志。
+> The API Key is read only from VS Code user settings and is never written to source code or logs.

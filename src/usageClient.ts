@@ -26,7 +26,7 @@ export async function fetchUsageInfo(apiKey: string): Promise<UsageInfo> {
   });
 
   if (!response.ok) {
-    throw new Error(`接口请求失败：HTTP ${response.status}`);
+    throw new Error(`Request failed: HTTP ${response.status}`);
   }
 
   const data = (await response.json()) as KeyInfoResponse;
@@ -37,7 +37,7 @@ export function parseUsageInfo(data: KeyInfoResponse): UsageInfo {
   const spend = data.info?.spend;
 
   if (typeof spend !== "number" || !Number.isFinite(spend)) {
-    throw new Error("接口响应缺少有效的 info.spend");
+    throw new Error("Response is missing a valid info.spend value");
   }
 
   const keyName =

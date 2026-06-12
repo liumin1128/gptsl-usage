@@ -67,13 +67,13 @@ export class UsageStatusBarController implements vscode.Disposable {
   }
 
   private showMissingApiKey(): void {
-    this.statusBarItem.text = "$(key) 设置额度 API Key";
-    this.statusBarItem.tooltip = "点击打开设置：gptslUsage.apiKey";
+    this.statusBarItem.text = "$(key) Set Usage API Key";
+    this.statusBarItem.tooltip = "Click to open setting: gptslUsage.apiKey";
   }
 
   private showLoading(): void {
-    this.statusBarItem.text = "$(sync~spin) 加载额度...";
-    this.statusBarItem.tooltip = "正在刷新 GPTSL 使用额度";
+    this.statusBarItem.text = "$(sync~spin) Loading usage...";
+    this.statusBarItem.tooltip = "Refreshing GPTSL usage";
   }
 
   private showUsage(usage: UsageInfo): void {
@@ -82,8 +82,8 @@ export class UsageStatusBarController implements vscode.Disposable {
   }
 
   private showError(error: unknown): void {
-    this.statusBarItem.text = "$(warning) 额度获取失败";
-    this.statusBarItem.tooltip = `点击重试。${getErrorMessage(error)}`;
+    this.statusBarItem.text = "$(warning) Usage fetch failed";
+    this.statusBarItem.tooltip = `Click to retry. ${getErrorMessage(error)}`;
   }
 
   private shouldIgnore(token: number): boolean {
@@ -106,17 +106,17 @@ export async function openApiKeySetting(): Promise<void> {
 }
 
 function buildUsageTooltip(usage: UsageInfo): string {
-  const lines = [`当前使用额度：${formatSpend(usage.spend)}`];
+  const lines = [`Current usage: ${formatSpend(usage.spend)}`];
 
   if (usage.keyName) {
-    lines.push(`Key：${usage.keyName}`);
+    lines.push(`Key: ${usage.keyName}`);
   }
 
   if (usage.updatedAt) {
-    lines.push(`更新时间：${usage.updatedAt}`);
+    lines.push(`Updated at: ${usage.updatedAt}`);
   }
 
-  lines.push("点击刷新最新数据");
+  lines.push("Click to refresh latest data");
   return lines.join("\n");
 }
 
@@ -125,7 +125,7 @@ function getErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  return "未知错误";
+  return "Unknown error";
 }
 
 export function registerUsageStatusBar(context: vscode.ExtensionContext): void {
