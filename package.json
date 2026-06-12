@@ -1,0 +1,45 @@
+{
+  "name": "gptsl-usage",
+  "displayName": "GPTSL Usage",
+  "description": "Show GenAI key spend in the VS Code status bar.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gptslUsage.refresh",
+        "title": "Refresh GPTSL Usage"
+      }
+    ],
+    "configuration": {
+      "title": "GPTSL Usage",
+      "properties": {
+        "gptslUsage.apiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "API Key used to query the GenAI key usage endpoint. Keep this value private."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "npm run compile && node --test out/test/**/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.4.5"
+  }
+}
