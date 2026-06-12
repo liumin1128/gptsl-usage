@@ -33,6 +33,9 @@
         "title": "Toggle GPTSL Display Mode"
       }
     ],
+    "configurationDefaults": {
+      "workbench.hover.delay": 0
+    },
     "configuration": {
       "title": "GPTSL Usage",
       "properties": {
