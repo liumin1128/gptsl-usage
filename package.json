@@ -27,6 +27,10 @@
       {
         "command": "gptslUsage.setDisplayMode",
         "title": "Set GPTSL Display Mode"
+      },
+      {
+        "command": "gptslUsage.toggleDisplayMode",
+        "title": "Toggle GPTSL Display Mode"
       }
     ],
     "configuration": {

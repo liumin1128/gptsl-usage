@@ -11,6 +11,7 @@ import { fetchUsageInfo, UsageInfo } from "./usageClient";
 const COMMAND_REFRESH = "gptslUsage.refresh";
 const COMMAND_OPEN_API_KEY_SETTING = "gptslUsage.openApiKeySetting";
 const COMMAND_SET_DISPLAY_MODE = "gptslUsage.setDisplayMode";
+const COMMAND_TOGGLE_DISPLAY_MODE = "gptslUsage.toggleDisplayMode";
 const CONFIG_SECTION = "gptslUsage";
 const CONFIG_API_KEY = "apiKey";
 const CONFIG_DISPLAY_MODE = "displayMode";
@@ -164,6 +165,7 @@ function buildUsageTooltip(
       COMMAND_REFRESH,
       COMMAND_OPEN_API_KEY_SETTING,
       COMMAND_SET_DISPLAY_MODE,
+      COMMAND_TOGGLE_DISPLAY_MODE,
     ],
   };
   tooltip.supportThemeIcons = true;
@@ -199,8 +201,6 @@ function buildUsageTooltip(
     tooltip.appendMarkdown(`- Updated at: \`${usage.updatedAt}\`\n`);
   }
 
-  const targetMode = displayMode === "amount" ? "percentage" : "amount";
-
   tooltip.appendMarkdown("\n---\n");
   tooltip.appendMarkdown(`[Refresh](command:${COMMAND_REFRESH})`);
   tooltip.appendMarkdown(" · ");
@@ -209,7 +209,7 @@ function buildUsageTooltip(
   );
   tooltip.appendMarkdown(" · ");
   tooltip.appendMarkdown(
-    `[Switch to ${targetMode}](command:${COMMAND_SET_DISPLAY_MODE}?${encodeCommandArgs([targetMode])})`,
+    `[Toggle display mode](command:${COMMAND_TOGGLE_DISPLAY_MODE})`,
   );
 
   return tooltip;
@@ -230,10 +230,6 @@ function buildErrorTooltip(error: unknown): vscode.MarkdownString {
   );
 
   return tooltip;
-}
-
-function encodeCommandArgs(args: unknown[]): string {
-  return encodeURIComponent(JSON.stringify(args));
 }
 
 function getErrorMessage(error: unknown): string {
@@ -259,6 +255,10 @@ export function registerUsageStatusBar(context: vscode.ExtensionContext): void {
       COMMAND_SET_DISPLAY_MODE,
       (mode: DisplayMode) => setDisplayMode(mode),
     ),
+    vscode.commands.registerCommand(COMMAND_TOGGLE_DISPLAY_MODE, async () => {
+      const nextMode = getDisplayMode() === "amount" ? "percentage" : "amount";
+      await setDisplayMode(nextMode);
+    }),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration(CONFIG_SECTION)) {
         controller.updateFromConfiguration();
