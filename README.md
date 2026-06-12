@@ -20,6 +20,7 @@ Show the current GenAI key spend or budget percentage in the bottom-right VS Cod
 - The tooltip also provides actions to refresh usage, open the API Key setting, and switch display mode.
 - Values are not capped at the budget limit, so percentages above 100% are displayed as-is.
 - On request failure: the status bar shows a failed state; hover to view the error reason.
+- If a packaged extension works on one computer but fails on another, first verify the API Key and whether that computer can access the GenAI endpoint.
 
 ## Settings
 

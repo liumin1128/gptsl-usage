@@ -23,24 +23,34 @@ interface KeyInfoResponse {
 }
 
 const USAGE_ENDPOINT = "https://genai-models-nonprod.sq.com.sg/key/info";
+const REQUEST_TIMEOUT_MS = 15_000;
 
 export async function fetchUsageInfo(apiKey: string): Promise<UsageInfo> {
   const url = new URL(USAGE_ENDPOINT);
   url.searchParams.set("key", apiKey);
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), REQUEST_TIMEOUT_MS);
 
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      "api-key": apiKey,
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "api-key": apiKey,
+      },
+      signal: abortController.signal,
+    });
 
-  if (!response.ok) {
-    throw new Error(`Request failed: HTTP ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Request failed: HTTP ${response.status}`);
+    }
+
+    const data = (await response.json()) as KeyInfoResponse;
+    return parseUsageInfo(data);
+  } catch (error) {
+    throw normalizeFetchError(error);
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = (await response.json()) as KeyInfoResponse;
-  return parseUsageInfo(data);
 }
 
 export function parseUsageInfo(data: KeyInfoResponse): UsageInfo {
@@ -124,4 +134,12 @@ function readModelBudgetLimit(value: unknown): number | undefined {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function normalizeFetchError(error: unknown): Error {
+  if (error instanceof Error && error.name === "AbortError") {
+    return new Error(`Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s`);
+  }
+
+  return error instanceof Error ? error : new Error("Unknown fetch error");
 }

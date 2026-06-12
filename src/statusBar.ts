@@ -223,6 +223,9 @@ function buildErrorTooltip(error: unknown): vscode.MarkdownString {
   tooltip.appendMarkdown(
     `**Usage fetch failed**\n\n${getErrorMessage(error)}\n\n`,
   );
+  tooltip.appendMarkdown(
+    "If this only fails on another computer, check whether that computer can access the GenAI endpoint and has a valid `gptslUsage.apiKey`.\n\n",
+  );
   tooltip.appendMarkdown(`[Retry](command:${COMMAND_REFRESH})`);
   tooltip.appendMarkdown(" · ");
   tooltip.appendMarkdown(
