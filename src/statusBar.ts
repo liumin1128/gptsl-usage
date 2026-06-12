@@ -1,10 +1,21 @@
 import * as vscode from "vscode";
-import { formatSpend } from "./format";
+import {
+  buildProgressBar,
+  calculateUsagePercentage,
+  formatPercentage,
+  formatSpend,
+  getProgressRing,
+} from "./format";
 import { fetchUsageInfo, UsageInfo } from "./usageClient";
 
 const COMMAND_REFRESH = "gptslUsage.refresh";
+const COMMAND_OPEN_API_KEY_SETTING = "gptslUsage.openApiKeySetting";
+const COMMAND_SET_DISPLAY_MODE = "gptslUsage.setDisplayMode";
 const CONFIG_SECTION = "gptslUsage";
 const CONFIG_API_KEY = "apiKey";
+const CONFIG_DISPLAY_MODE = "displayMode";
+
+type DisplayMode = "percentage" | "amount";
 
 export class UsageStatusBarController implements vscode.Disposable {
   private readonly statusBarItem: vscode.StatusBarItem;
@@ -77,13 +88,24 @@ export class UsageStatusBarController implements vscode.Disposable {
   }
 
   private showUsage(usage: UsageInfo): void {
-    this.statusBarItem.text = `$(graph) ${formatSpend(usage.spend)}`;
-    this.statusBarItem.tooltip = buildUsageTooltip(usage);
+    const displayMode = getDisplayMode();
+    const percentage = calculateUsagePercentage(usage.spend, usage.budgetLimit);
+
+    this.statusBarItem.text = buildStatusBarText(
+      usage,
+      displayMode,
+      percentage,
+    );
+    this.statusBarItem.tooltip = buildUsageTooltip(
+      usage,
+      displayMode,
+      percentage,
+    );
   }
 
   private showError(error: unknown): void {
     this.statusBarItem.text = "$(warning) Usage fetch failed";
-    this.statusBarItem.tooltip = `Click to retry. ${getErrorMessage(error)}`;
+    this.statusBarItem.tooltip = buildErrorTooltip(error);
   }
 
   private shouldIgnore(token: number): boolean {
@@ -98,6 +120,14 @@ export function getApiKey(): string {
     .trim();
 }
 
+export function getDisplayMode(): DisplayMode {
+  const mode = vscode.workspace
+    .getConfiguration(CONFIG_SECTION)
+    .get<string>(CONFIG_DISPLAY_MODE, "percentage");
+
+  return mode === "amount" ? "amount" : "percentage";
+}
+
 export async function openApiKeySetting(): Promise<void> {
   await vscode.commands.executeCommand(
     "workbench.action.openSettings",
@@ -105,19 +135,105 @@ export async function openApiKeySetting(): Promise<void> {
   );
 }
 
-function buildUsageTooltip(usage: UsageInfo): string {
-  const lines = [`Current usage: ${formatSpend(usage.spend)}`];
+export async function setDisplayMode(mode: DisplayMode): Promise<void> {
+  await vscode.workspace
+    .getConfiguration(CONFIG_SECTION)
+    .update(CONFIG_DISPLAY_MODE, mode, vscode.ConfigurationTarget.Global);
+}
+
+function buildStatusBarText(
+  usage: UsageInfo,
+  displayMode: DisplayMode,
+  percentage: number | undefined,
+): string {
+  if (displayMode === "amount") {
+    return `$(graph) ${formatSpend(usage.spend)}`;
+  }
+
+  return `${getProgressRing(percentage)} ${formatPercentage(percentage)}`;
+}
+
+function buildUsageTooltip(
+  usage: UsageInfo,
+  displayMode: DisplayMode,
+  percentage: number | undefined,
+): vscode.MarkdownString {
+  const tooltip = new vscode.MarkdownString(undefined, true);
+  tooltip.isTrusted = {
+    enabledCommands: [
+      COMMAND_REFRESH,
+      COMMAND_OPEN_API_KEY_SETTING,
+      COMMAND_SET_DISPLAY_MODE,
+    ],
+  };
+  tooltip.supportThemeIcons = true;
+  tooltip.appendMarkdown("**GPTSL Usage**\n\n");
+
+  if (usage.userName) {
+    tooltip.appendMarkdown(`- User: \`${usage.userName}\`\n`);
+  }
+
+  tooltip.appendMarkdown(`- Current usage: \`${formatSpend(usage.spend)}\`\n`);
+
+  if (usage.budgetLimit !== undefined) {
+    tooltip.appendMarkdown(
+      `- Budget limit: \`${formatSpend(usage.budgetLimit)}\`\n`,
+    );
+  }
+
+  tooltip.appendMarkdown(`- Percentage: \`${formatPercentage(percentage)}\`\n`);
+  tooltip.appendMarkdown(
+    `- Progress: \`${buildProgressBar(percentage)} ${formatPercentage(percentage)}\`\n`,
+  );
+  tooltip.appendMarkdown(`- Display mode: \`${displayMode}\`\n`);
 
   if (usage.keyName) {
-    lines.push(`Key: ${usage.keyName}`);
+    tooltip.appendMarkdown(`- Key: \`${usage.keyName}\`\n`);
+  }
+
+  if (usage.keyAlias) {
+    tooltip.appendMarkdown(`- Alias: \`${usage.keyAlias}\`\n`);
   }
 
   if (usage.updatedAt) {
-    lines.push(`Updated at: ${usage.updatedAt}`);
+    tooltip.appendMarkdown(`- Updated at: \`${usage.updatedAt}\`\n`);
   }
 
-  lines.push("Click to refresh latest data");
-  return lines.join("\n");
+  const targetMode = displayMode === "amount" ? "percentage" : "amount";
+
+  tooltip.appendMarkdown("\n---\n");
+  tooltip.appendMarkdown(`[Refresh](command:${COMMAND_REFRESH})`);
+  tooltip.appendMarkdown(" · ");
+  tooltip.appendMarkdown(
+    `[Set API Key](command:${COMMAND_OPEN_API_KEY_SETTING})`,
+  );
+  tooltip.appendMarkdown(" · ");
+  tooltip.appendMarkdown(
+    `[Switch to ${targetMode}](command:${COMMAND_SET_DISPLAY_MODE}?${encodeCommandArgs([targetMode])})`,
+  );
+
+  return tooltip;
+}
+
+function buildErrorTooltip(error: unknown): vscode.MarkdownString {
+  const tooltip = new vscode.MarkdownString(undefined, true);
+  tooltip.isTrusted = {
+    enabledCommands: [COMMAND_REFRESH, COMMAND_OPEN_API_KEY_SETTING],
+  };
+  tooltip.appendMarkdown(
+    `**Usage fetch failed**\n\n${getErrorMessage(error)}\n\n`,
+  );
+  tooltip.appendMarkdown(`[Retry](command:${COMMAND_REFRESH})`);
+  tooltip.appendMarkdown(" · ");
+  tooltip.appendMarkdown(
+    `[Set API Key](command:${COMMAND_OPEN_API_KEY_SETTING})`,
+  );
+
+  return tooltip;
+}
+
+function encodeCommandArgs(args: unknown[]): string {
+  return encodeURIComponent(JSON.stringify(args));
 }
 
 function getErrorMessage(error: unknown): string {
@@ -136,8 +252,15 @@ export function registerUsageStatusBar(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand(COMMAND_REFRESH, () =>
       controller.refresh(),
     ),
+    vscode.commands.registerCommand(COMMAND_OPEN_API_KEY_SETTING, () =>
+      openApiKeySetting(),
+    ),
+    vscode.commands.registerCommand(
+      COMMAND_SET_DISPLAY_MODE,
+      (mode: DisplayMode) => setDisplayMode(mode),
+    ),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration(`${CONFIG_SECTION}.${CONFIG_API_KEY}`)) {
+      if (event.affectsConfiguration(CONFIG_SECTION)) {
         controller.updateFromConfiguration();
       }
     }),

@@ -19,6 +19,14 @@
       {
         "command": "gptslUsage.refresh",
         "title": "Refresh GPTSL Usage"
+      },
+      {
+        "command": "gptslUsage.openApiKeySetting",
+        "title": "Open GPTSL API Key Setting"
+      },
+      {
+        "command": "gptslUsage.setDisplayMode",
+        "title": "Set GPTSL Display Mode"
       }
     ],
     "configuration": {
@@ -28,6 +36,15 @@
           "type": "string",
           "default": "",
           "markdownDescription": "API Key used to query the GenAI key usage endpoint. Keep this value private."
+        },
+        "gptslUsage.displayMode": {
+          "type": "string",
+          "enum": [
+            "percentage",
+            "amount"
+          ],
+          "default": "percentage",
+          "markdownDescription": "Status bar display mode. Use `percentage` to show spend divided by the budget limit, or `amount` to show spend and budget values."
         }
       }
     }
