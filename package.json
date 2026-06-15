@@ -3,7 +3,29 @@
   "displayName": "GPTSL Usage",
   "description": "Show GenAI key spend in the VS Code status bar.",
   "version": "0.0.1",
-  "publisher": "local",
+  "publisher": "liumin1128",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/liumin1128/gptsl-usage"
+  },
+  "bugs": {
+    "url": "https://github.com/liumin1128/gptsl-usage/issues"
+  },
+  "homepage": "https://github.com/liumin1128/gptsl-usage#readme",
+  "keywords": [
+    "gptsl",
+    "genai",
+    "usage",
+    "budget",
+    "spend",
+    "status-bar"
+  ],
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -57,8 +79,9 @@
     }
   },
   "scripts": {
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "package": "vsce package --allow-missing-repository --skip-license",
+    "package": "vsce package",
     "watch": "tsc -watch -p ./",
     "test": "npm run compile && node --test out/test/**/*.test.js"
   },

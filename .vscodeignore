@@ -2,7 +2,10 @@ src/**
 test/**
 out/test/**
 .vscode/**
+.git/**
+.DS_Store
 .gitignore
+CLAUDE.md
 tsconfig.json
 *.map
 out/**/*.map
