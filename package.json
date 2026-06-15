@@ -3,7 +3,7 @@
   "displayName": "GPTSL Usage",
   "description": "Show GenAI key spend in the VS Code status bar.",
   "version": "0.0.1",
-  "publisher": "liumin1128",
+  "publisher": "GPTSLUsage",
   "repository": {
     "type": "git",
     "url": "https://github.com/liumin1128/gptsl-usage"
